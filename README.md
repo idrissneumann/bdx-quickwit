@@ -14,7 +14,7 @@ Dans cette présentation, nous allons parler d'une nouvelle solution qui réunis
 
 Nous verrons également dans cette présentation que Quickwit peut également servir de backend pour stocker des traces via OpenTelemetry et est compatible avec Jaeger UI ce qui permet également conserver ses traces durablement dans le temps grace à la promesse de l'object storage. 
 
-Cette présentation s'accompagnera d'une démo dans laquelle Quickwit ingèrera des logs et traces en provenance d'une application Python via OTLP/grpc et on présentera des dashboards avec le plugin Grafana permettant de mettre en corrélation des logs et des traces et se substituer à un APM (Application Performance Monitoring, outil pour mesurer la performance de vos applications).
+Cette présentation s'accompagnera d'une démo dans laquelle Quickwit ingèrera des logs et traces en provenance d'une application Python via OTLP/grpc et on présentera des dashboards avec le plugin Grafana permettant de mettre en corrélation des logs et des traces et se substituer à un APM (_Application Performance Monitoring_, outil pour mesurer la performance de vos applications).
 
 ## Elevator pitch
 
