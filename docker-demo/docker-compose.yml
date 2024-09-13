@@ -1,0 +1,79 @@
+---
+services:
+  imalive-api:
+    image: comworkio/imalive-api:4.0.5
+    container_name: imalive-api
+    platform: linux/amd64
+    environment:
+      - IMALIVE_NODE_NAME=grafana-imalive
+      - WAIT_TIME=10
+      - LOG_FORMAT=json
+      - OTEL_COLLECTOR_ENDPOINT=otel-collector:4317
+    ports: 
+      - 8080:8080
+    networks:
+     - qw-net
+  quickwit:
+    image: quickwit/quickwit:0.8.2
+    container_name: quickwit
+    volumes:
+     - qwdata:/quickwit/qwdata
+    ports: 
+      - 7280:7280
+    networks:
+     - qw-net
+    command: run
+  jaeger:
+    restart: always
+    image: jaegertracing/jaeger-query:1.60
+    container_name: jaeger
+    platform: linux/amd64
+    ports:
+      - "16686:16686"
+    environment:
+      - SPAN_STORAGE_TYPE=grpc
+      - GRPC_STORAGE_SERVER=quickwit:7281
+      - GRPC_STORAGE_TLS=false
+    networks:
+      - qw-net
+  otel-collector:
+    restart: always
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "1888:1888"
+      - "8888:8888"
+      - "8889:8889"
+      - "13133:13133"
+      - "4317:4317"
+      - "4318:4318"
+      - "55679:55679"
+    depends_on:
+      - jaeger
+      - quickwit
+    networks:
+      - qw-net
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    container_name: grafana
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      - GF_INSTALL_PLUGINS=https://github.com/quickwit-oss/quickwit-datasource/releases/download/v0.4.5/quickwit-quickwit-datasource-0.4.5.zip;quickwit-quickwit-datasource
+    ports:
+      - 3000:3000
+    volumes:
+      - grafanadata:/var/lib/grafana
+    networks:
+      - qw-net
+
+networks:
+  qw-net:
+    name: grafana_network
+
+volumes:
+  grafanadata:
+  qwdata:

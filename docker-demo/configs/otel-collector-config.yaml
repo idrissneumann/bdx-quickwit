@@ -1,0 +1,32 @@
+---
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  otlp/quickwit:
+    endpoint: "quickwit:7281"
+    tls:
+      insecure: true
+  debug:
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/quickwit]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug,otlp/quickwit]
