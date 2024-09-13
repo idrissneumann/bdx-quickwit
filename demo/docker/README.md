@@ -1,7 +1,7 @@
-# Demo with docker
+# Demo using docker docker
 
 ```shel
-cd docker-demo
+cd demo/docker
 docker compose up --force-recreate
 ```
 
