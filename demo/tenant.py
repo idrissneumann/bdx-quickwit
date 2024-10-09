@@ -20,7 +20,7 @@ parser.add_argument('--nodl', action='store_true', help="Do not perform a helm d
 parser.add_argument('--install', action='store_true', help="Perform the installation")
 parser.add_argument('--password', action='store_true', help="Get the grafana dynamic password")
 parser.add_argument('--kind', action='store_true', help="Recreate a kind cluster")
-parser.add_argument('--tunnel', required=False, choices=['quickwit', 'victoria', 'imalive', 'grafana'], help="Open a tunnel.")
+parser.add_argument('--tunnel', required=False, choices=['quickwit', 'jaeger', 'imalive', 'grafana'], help="Open a tunnel.")
 
 args = parser.parse_args()
 
@@ -44,7 +44,7 @@ TUNNELS = {
         "target_port": 80
     },
     "jaeger": {
-        "service": "jaeger-{}".format(NS),
+        "service": "jaeger",
         "port": 16686,
         "target_port": 16686
     },

@@ -30,7 +30,7 @@ spec:
             - name: GRPC_STORAGE_SERVER
               value: {{ $.Values.jaeger.grpc.storage_server | quote }}
             - name: GRPC_STORAGE_TLS
-              value: {{ $.Values.jaeger.grpc.tls }}
+              value: {{ $.Values.jaeger.grpc.tls | quote }}
             {{ end }}
 
       restartPolicy: {{ $.Values.jaeger.restartPolicy }}
