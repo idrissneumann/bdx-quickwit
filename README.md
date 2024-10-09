@@ -1,4 +1,4 @@
-# Quickwit talk fr
+# Quickwit BDX/IO
 
 ## Titre
 
@@ -23,3 +23,12 @@ Pour l'instant ça serait une première édition de ce talk en public mais déj�
 Parmi les références on pourra citer quelques benchmark et storytelling disponibles ici :
 * "How Binance built a 100PB log service with Quickwit": https://quickwit.io/blog/quickwit-binance-story
 * "Benchmarking Quickwit vs. Loki": https://quickwit.io/blog/benchmarking-quickwit-loki
+
+## Git repo
+
+* Repo principal: https://gitlab.comwork.io/comwork_public/talks/bdx-quickwit
+* Github mirror: https://github.com/idrissneumann/bdx-quickwit
+
+## Demo
+
+Suivre ce [README](./demo/README.md) pour reproduire la démo.
