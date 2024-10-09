@@ -21,7 +21,7 @@ jaeger:
   restartPolicy: Always
   image:
     path: jaegertracing/jaeger-query
-    tag: 1.60
+    tag: "1.60"
   grpc:
     storage_server: "quickwit-searcher.{{ tenant_name }}.svc.cluster.local:7281"
     tls: false
