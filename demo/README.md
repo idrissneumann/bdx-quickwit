@@ -45,7 +45,7 @@ You'll find OTEL traces here:
 ## Test Grafana
 
 ```shell
-python3 tenant.py --name test --tunnel grafana --password
+python3 tenant.py --name test --password --tunnel grafana
 ```
 
 Grafana will be available here: http://localhost:8081
