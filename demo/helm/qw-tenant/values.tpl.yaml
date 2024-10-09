@@ -58,7 +58,7 @@ opentelemetry-collector:
       pipelines:
         metrics:
           receivers: [otlp]
-          exporters: [debug,otlphttp/victoriametrics]
+          exporters: [debug]
         traces:
           receivers: [otlp]
           processors: [batch]
@@ -186,9 +186,6 @@ grafana:
   plugins:
     - https://github.com/quickwit-oss/quickwit-datasource/releases/download/v0.4.5/quickwit-quickwit-datasource-0.4.5.zip;quickwit-quickwit-datasource
     - https://github.com/jackw/heywesty-trafficlight-panel/releases/download/v0.4.1/heywesty-trafficlight-panel-0.4.1.zip;heywesty-trafficlight-panel
-
-victoria:
-  enable: true
 
 minio:
   enable: true
