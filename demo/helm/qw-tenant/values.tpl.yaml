@@ -1,0 +1,253 @@
+---
+imalive:
+  enable: true
+  name: "imalive-{{ tenant_name }}"
+  replicas: 1
+  service_port: 8089
+  restartPolicy: Always
+  wait_time: 10
+  otlp_endpoint: release-name-opentelemetry-collector.{{ tenant_name }}.svc.cluster.local:4317
+  image:
+    path: comworkio/imalive-api
+    tag: latest
+  log:
+    level: INFO
+    format: json
+
+jaeger:
+  enable: true
+  replicas: 1
+  service_port: 16686
+  restartPolicy: Always
+  image:
+    path: jaegertracing/jaeger-query
+    tag: 1.60
+  ports:
+      - "16686:16686"
+  grpc:
+    storage_server: "quickwit-searcher.{{ tenant_name }}.svc.cluster.local:7281"
+    tls: false
+
+otel:
+  enable: true
+
+opentelemetry-collector:
+  mode: deployment
+  replicaCount: 1
+  image:
+    repository: otel/opentelemetry-collector-k8s
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    exporters:
+      otlp/quickwit:
+        endpoint: "quickwit-indexer.{{ tenant_name }}.svc.cluster.local:7281"
+        tls:
+          insecure: true
+      otlphttp/victoriametrics:
+        compression: gzip
+        encoding: proto
+        endpoint: http://release-name-victoria-server.{{ tenant_name }}.svc.cluster.local:8428/opentelemetry
+        tls:
+          insecure: true
+      debug: {}
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          exporters: [debug,otlphttp/victoriametrics]
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/quickwit]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug,otlp/quickwit]
+
+vector:
+  enable: true
+  env:
+    - name: VECTOR_SELF_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+  role: Agent
+  service:
+    enabled: false
+  extraVolumes:
+    - name: kubernetes-logs
+      hostPath:
+        path: "/var/lib/vector/kubernetes_logs"
+  extraVolumeMounts:
+    - name: kubernetes-logs
+      mountPath: "/var/lib/vector/kubernetes_logs"
+      readOnly: false
+  customConfig:
+    sources:
+      kubernetes_logs:
+        type: kubernetes_logs
+        extra_label_selector: "app=imalive-{{ tenant_name }}"
+    transforms:
+      remap_app_logs:
+        inputs:
+          - "kubernetes_logs"
+        type: "remap"
+        source: |
+          .timestamp_nanos, _ = to_unix_timestamp(.timestamp, unit: "nanoseconds")
+
+          .message = string!(.message)
+
+          if contains(.message, "error", case_sensitive: false) || contains(.message, "errno", case_sensitive: false) {
+            .message = replace(.message, r'^ERROR:[^:]*:', "")
+            .severity_text = "ERROR"
+          } else if contains(.message, "warn", case_sensitive: false) {
+            .message = replace(.message, r'^WARNING:[^:]*:', "")
+            .severity_text = "WARN"
+          } else if contains(.message, "debug", case_sensitive: false) {
+            .message = replace(.message, r'^DEBUG:[^:]*:', "")
+            .severity_text = "DEBUG"
+          } else {
+            .message = replace(.message, r'^INFO:[^:]*:', "")
+            .severity_text = "INFO"
+          }
+
+          .body, err = parse_json(.message)
+          if err != null || is_null(.body) {
+            .body = {"message": .message}
+          } else {
+            .body.message = .message
+          }
+          .resource_attributes.host.hostname, _ = get_hostname()
+
+          if is_string(.container_name) {
+            .service_name = .container_name
+            .resource_attributes.service.name = .container_name
+            .body.container_name = .container_name
+          } else {
+            .service_name = .resource_attributes.host.hostname
+            .resource_attributes.service.name = .resource_attributes.host.hostname
+          }
+
+          if is_string(.container_id) {
+            .body.container_id = del(.container_id)
+          }
+
+          if ! is_null(.container_created_at) {
+            .body.container_created_at = del(.container_created_at)
+          }
+
+          if is_string(.stream) {
+            .body.stream = del(.stream)
+          }
+
+          if is_string(.file) {
+            .body.file = del(.file)
+          }
+
+          if is_string(.host) {
+            .body.host = del(.host)
+          }
+
+          if ! is_null(.kubernetes) {
+            .body.kubernetes = del(.kubernetes)
+          }
+
+          if is_string(.source_type) {
+            .resource_attributes.source_type = .source_type
+          }
+
+          del(.message)
+          del(.timestamp)
+          del(.source_type)
+          del(.container_name)
+    sinks:
+      debug:
+        type: "console"
+        inputs: ["remap_app_logs"]
+        encoding:
+          codec: "json"
+        target: "stdout"
+      quickwit_logs:
+        type: "http"
+        method: "post"
+        inputs: ["remap_app_logs"]
+        encoding:
+          codec: "json"
+        framing:
+          method: "newline_delimited"
+        uri: "http://quickwit-indexer.{{ tenant_name }}.svc.cluster.local:7280/api/v1/otel-logs-v0_7/ingest"
+
+grafana:
+  enable: true
+  plugins:
+    - https://github.com/quickwit-oss/quickwit-datasource/releases/download/v0.4.5/quickwit-quickwit-datasource-0.4.5.zip;quickwit-quickwit-datasource
+    - https://github.com/jackw/heywesty-trafficlight-panel/releases/download/v0.4.1/heywesty-trafficlight-panel-0.4.1.zip;heywesty-trafficlight-panel
+
+victoria:
+  enable: true
+
+minio:
+  enable: true
+  resources:
+    requests:
+      memory: 512Mi
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 10Gi
+  mode: standalone
+  rootUser: {{ tenant_name }}
+  rootPassword: {{ tenant_password }}
+  buckets:
+    - name: {{ tenant_name }}
+      policy: none
+      purge: false
+
+quickwit:
+  enable: true
+  fullnameOverride: quickwit
+
+  image:
+    repository: quickwit/quickwit
+    pullPolicy: Always
+    tag: 0.8.2
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "7280"
+
+  environment:
+    QW_DISABLE_TELEMETRY: 1
+    QW_ENABLE_OPENTELEMETRY_OTLP_EXPORTER: true
+    NO_COLOR: true
+
+  searcher:
+    replicaCount: 1
+    podManagementPolicy: Parallel
+
+  indexer:
+    replicaCount: 1
+    podManagementPolicy: Parallel
+
+  config:
+    default_index_root_uri: s3://{{ tenant_name }}
+    metastore_uri: s3://{{ tenant_name }}
+
+    searcher:
+      fast_field_cache_capacity: 8G
+      split_footer_cache_capacity: 4G
+      max_num_concurrent_split_streams: 100
+
+    storage:
+      s3:
+        flavor: minio
+        region: us-east-1
+        access_key_id: {{ tenant_name }}
+        secret_access_key: {{ tenant_password }}
+        endpoint: http://release-name-minio.{{ tenant_name }}.svc.cluster.local:9000

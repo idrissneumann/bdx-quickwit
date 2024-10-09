@@ -1,0 +1,32 @@
+---
+apiVersion: v2
+description: Quickwit
+name: qw-tenant
+version: 1.0.0
+
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    tags:
+      - bitnami-common
+    version: 1.x.x
+  - name: grafana
+    version: 8.5.1
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enable
+  - name: quickwit
+    version: 0.7.1
+    repository: https://helm.quickwit.io
+    condition: quickwit.enable
+  - name: vector
+    version: 0.36.1
+    repository: https://helm.vector.dev
+    condition: vector.enable
+  - name: opentelemetry-collector
+    version: 0.108.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+    condition: otel.enable
+  - name: minio
+    version: 5.2.0
+    repository: https://charts.min.io/
+    condition: minio.enable

@@ -1,0 +1,49 @@
+{{ if $.Values.jaeger.enable }}
+---
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+spec:
+  replicas: {{ $.Values.jaeger.replicas }}
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - image: {{ print $.Values.jaeger.image.path ":" $.Values.jaeger.image.tag}}
+          name: jaeger
+          ports:
+            - containerPort: 16686
+          env:
+            - name: FOO
+              value: BAR
+            {{ if $.Values.jaeger.grpc }}
+            - name: SPAN_STORAGE_TYPE
+              value: grpc
+            - name: GRPC_STORAGE_SERVER
+              value: {{ $.Values.jaeger.grpc.storage_server | quote }}
+            - name: GRPC_STORAGE_TLS
+              value: {{ $.Values.jaeger.grpc.tls }}
+            {{ end }}
+
+      restartPolicy: {{ $.Values.jaeger.restartPolicy }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+spec:
+  ports:
+    - name: "http"
+      port: {{ $.Values.jaeger.service_port }}
+      targetPort: 16686
+  selector:
+    app: jaeger
+{{ end }}

@@ -1,0 +1,52 @@
+{{ if $.Values.imalive.enable }}
+---
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $.Values.imalive.name }}
+  name: {{ $.Values.imalive.name }}
+spec:
+  replicas: {{ $.Values.imalive.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $.Values.imalive.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.imalive.name }}
+    spec:
+      containers:
+        - image: {{ print $.Values.imalive.image.path ":" $.Values.imalive.image.tag}}
+          name: {{ $.Values.imalive.name }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: IMALIVE_NODE_NAME
+              value: {{ $.Values.imalive.name }}
+            - name: WAIT_TIME
+              value: {{ $.Values.imalive.wait_time | quote }}
+            - name: LOG_LEVEL
+              value: {{ $.Values.imalive.log.level | quote }}
+            - name: LOG_FORMAT
+              value: {{ $.Values.imalive.log.format | quote }}
+
+            {{ if $.Values.imalive.otlp_endpoint }}
+            - name: OTEL_COLLECTOR_ENDPOINT
+              value: {{ $.Values.imalive.otlp_endpoint | quote }}
+            {{ end }}
+
+      restartPolicy: {{ $.Values.imalive.restartPolicy }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.imalive.name }}
+spec:
+  ports:
+    - name: "http"
+      port: {{ $.Values.imalive.service_port }}
+      targetPort: 8080
+  selector:
+    app: {{ $.Values.imalive.name }}
+{{ end }}
