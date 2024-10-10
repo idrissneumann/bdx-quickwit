@@ -32,3 +32,7 @@ Parmi les références on pourra citer quelques benchmark et storytelling dispon
 ## Demo
 
 Suivre ce [README](./demo/README.md) pour reproduire la démo.
+
+## Slides
+
+Les slides sont disponibles [ici](./slides.pdf).
