@@ -72,7 +72,7 @@ def random_password(length):
     return "{}{}{}{}".format("".join(random_first_part), "".join(random_second_part), "".join(random_third_part), "".join(random_fourth_part))
 
 def replace_in_file(filepath, key, replacement):
-    pattern = re.compile("\{\{\ *" + key + "\ *\}\}")
+    pattern = r"\{\{\ *" + key + r"\ *\}\}"
     with open(filepath, 'r') as file:
         content = file.read()
     new_content = re.sub(pattern, replacement, content)

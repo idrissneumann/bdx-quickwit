@@ -1,0 +1,52 @@
+{
+  "doc_mapping": {
+    "mode": "lenient",
+    "field_mappings": [
+      {
+        "name": "time",
+        "type": "datetime",
+        "fast": true,
+        "fast_precision": "seconds",
+        "indexed": true,
+        "input_formats": [
+          "rfc3339",
+          "unix_timestamp"
+        ],
+        "output_format": "unix_timestamp_nanos",
+        "stored": true
+      },
+      {
+        "name": "cpu",
+        "fast": true,
+        "indexed": true,
+        "type": "f64"
+      },
+      {
+        "name": "ram",
+        "fast": true,
+        "indexed": true,
+        "type": "f64"
+      },
+      {
+        "name": "disk",
+        "fast": true,
+        "indexed": true,
+        "type": "f64"
+      }
+    ],
+    "timestamp_field": "time",
+    "max_num_partitions": 200,
+    "index_field_presence": true,
+    "store_source": false,
+    "tokenizers": []
+  },
+  "index_id": "my-metrics",
+  "search_settings": {
+    "default_search_fields": [
+      "cpu",
+      "ram",
+      "disk"
+    ]
+  },
+  "version": "0.8"
+}

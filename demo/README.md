@@ -53,3 +53,13 @@ Grafana will be available here: http://localhost:8081
 Generated password will be printed.
 
 The quickwit's plugin will be available
+
+## Add a new index
+
+You can also add this [mapping](./mapping_metrics.json) like this:
+
+```shell
+curl -X POST localhost:7280/api/v1/indexes -H "Content-Type: application/json" -H "Accept: application/json" -d '@mapping_metrics.json' -v
+```
+
+Then try to push imalive metrics into this new index through a new vector pipeline.
