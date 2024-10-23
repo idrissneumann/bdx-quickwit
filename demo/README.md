@@ -54,7 +54,7 @@ Generated password will be printed.
 
 The quickwit's plugin will be available
 
-## Add a new index
+## Hands-on
 
 You can also add this [mapping](./mapping_metrics.json) like this:
 
@@ -63,3 +63,73 @@ curl -X POST localhost:7280/api/v1/indexes -H "Content-Type: application/json" -
 ```
 
 Then try to push imalive metrics into this new index through a new vector pipeline.
+
+### Solution
+
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+V
+
+The remap function:
+
+```yaml
+remap_metrics:
+  inputs:
+    - "kubernetes_logs"
+  type: "remap"
+  source: |
+    .time, _ = to_unix_timestamp(.timestamp, unit: "nanoseconds")
+    .message = string!(.message)
+    .message = replace(.message, r'^[^:]*:[^:]*:', "")
+    log("message to parse: " + .message, level: "info")
+    .body, err = parse_json(.message)
+    if err != null || is_null(.body) || is_null(.body.cpu) || is_null(.body.virtual_memory) {
+      abort
+    }
+
+    .cpu = .body.cpu.percent.all
+    .disk = .body.disk_usage.percent
+    .ram = .body.virtual_memory.percent
+
+    del(.body)
+    del(.message)
+    del(.timestamp)
+    del(.source_type)
+    del(.container_name)
+```
+
+And the sinks:
+
+```yaml
+quickwit_metrics:
+  type: "http"
+  method: "post"
+  inputs: ["remap_metrics"]
+  encoding:
+    codec: "json"
+  framing:
+    method: "newline_delimited"
+  uri: "http://quickwit-indexer.{{ tenant_name }}.svc.cluster.local:7280/api/v1/my-metrics/ingest"
+```
