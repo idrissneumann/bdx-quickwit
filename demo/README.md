@@ -52,7 +52,30 @@ Grafana will be available here: http://localhost:8081
 
 Generated password will be printed.
 
-The quickwit's plugin will be available
+The quickwit's plugin will be available.
+
+You can try to add quickwit datasources using this url for the logs:
+
+* Name: `qw-logs`
+* URL: `http://quickwit-searcher.{{ tenant_name }}.svc.cluster.local:7280/api/v1`
+* Index ID: `otel-logs-v0_7`
+
+![grafana-quickwit-ds-form-logs](../img/screenshots/grafana-quickwit-ds-form-logs.png)
+
+And for the traces:
+
+* Name: `qw-traces`
+* URL: `http://quickwit-searcher.{{ tenant_name }}.svc.cluster.local:7280/api/v1`
+* Index ID: `otel-traces-v0_7`
+
+![grafana-quickwit-ds-form-traces](../img/screenshots/grafana-quickwit-ds-form-traces.png)
+
+And a Jaeger datasource with:
+
+* Name: Jaeger
+* URL: `http://jaeger.{{ tenant_name }}.svc.cluster.local:16686`
+
+![grafana-jaeger-ds-form](../img/screenshots/grafana-jaeger-ds-form.png)
 
 ## Hands-on
 
