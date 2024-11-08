@@ -14,6 +14,7 @@ It's a multitenant demo (each tenant is a namespace of Kubernetes)
 
 ```shell
 python3 tenant.py --name test --kind --install
+python3 tenant.py --verbose --noop --nodl --name test --install # no operation, no download for troubleshooting purposes
 ```
 
 If your `kind` cluster or any kubernetes cluster is configured, you can remove the `--kind` flag.
